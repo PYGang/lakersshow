@@ -14,6 +14,7 @@ public class UnionFind2 {
     private int[] parent;
     private int[] height;
     int size;
+    int ll;
 
     public UnionFind2(int size) {
         this.size = size;
