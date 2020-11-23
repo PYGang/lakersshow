@@ -12,16 +12,15 @@ import java.util.concurrent.Executors;
 
 public class UnionFind2 {
     private int[] parent;
-    private int[] height;
     int size;
 
     public UnionFind2(int size) {
         this.size = size;
         this.parent = new int[size];
-        this.height = new int[size];
+
         for (int i = 0; i < size; i++) {
             parent[i] = i;
-            height[i] = 1;
+
         }
     }
 
@@ -40,14 +39,12 @@ public class UnionFind2 {
         int firstRoot = find(firstElement);
         int secondRoot = find(secondElement);
 
-        if (height[firstRoot] < height[secondRoot]) {
-            parent[firstRoot] = secondRoot;
-        } else if (height[firstRoot] > height[secondRoot]) {
+        if(firstRoot<secondRoot){
             parent[secondRoot] = firstRoot;
-        } else {
+        }else{
             parent[firstRoot] = secondRoot;
-            height[secondRoot] += 1;
         }
+
     }
 
                 /*
@@ -65,17 +62,17 @@ public class UnionFind2 {
 
     private void clear(){
         parent = null;
-        height = null;
+//        height = null;
     }
 
     public static void main(String[] args) {
         int n = 5000001;
         UnionFind2 union = new UnionFind2(n);
-        Map<Integer, List<Integer>> map = new HashMap<>();
+        Map<Integer, List<Integer>> map = new LinkedHashMap<>();
         long start = new Date().getTime();
 
         //此处耗时约1.4秒，读与计算耗时2.2秒，此时在计算的同时就把账户表给加载好了
-        File file1 = new File("D:\\lakers\\src\\main\\java\\accounts.txt");
+        File file1 = new File("D:\\Project\\Java\\Competition\\lakersshow\\lakers\\src\\main\\java\\accounts.txt");
         ExecutorService executorService = Executors.newCachedThreadPool();
         Map<Integer, String> nameMap = new HashMap<>();
         executorService.submit(new FileThread(file1,nameMap));
@@ -83,7 +80,7 @@ public class UnionFind2 {
 
         //耗时最多2.7s，能不能考虑利用多线程吃掉一些时间和空间
         long start0 = new Date().getTime();
-        File file = new File("D:\\lakers\\src\\main\\java\\relations.txt");
+        File file = new File("D:\\Project\\Java\\Competition\\lakersshow\\lakers\\src\\main\\java\\relations.txt");
         try {
             LineIterator strs = FileUtils.lineIterator(file);
             while (strs.hasNext()) {
@@ -107,6 +104,9 @@ public class UnionFind2 {
         int[] parents = union.parent;
         for (int i = 0; i < n; i++) {
             int key = parents[i];
+            while(key!=parents[key]){
+                key=parents[key];
+            }
             List<Integer> list = map.getOrDefault(key, new ArrayList<>());
             list.add(i);
             map.put(key, list);
@@ -114,20 +114,15 @@ public class UnionFind2 {
         //排序耗时1s，其实在并查集算法中可以直接融入排序规则，我没考虑，估计顶多相差个100毫秒左右，排序跟拼接能不能考虑同时执行
         List<List<Integer>> allList = new ArrayList<>();
         for (List<Integer> value : map.values()) {
-            if(value.size()==1){
-                allList.add(value);
-                continue;
-            }
-            Collections.sort(value);
             allList.add(value);
         }
-        allList.sort(Comparator.comparing(o -> o.get(0)));
         List<String> lines = new ArrayList<>();
 
         //不再引用
         map.clear();
         union.clear();
         union = null;
+        map = null;
 
         StringBuffer sb = new StringBuffer();
 
@@ -155,7 +150,7 @@ public class UnionFind2 {
 
         //写文件很快了，300毫秒左右，极限优化的话，还得将计算结果加到消息队列中，在计算的同时将写操作完成
         long start2 = new Date().getTime();
-        File wfile = new File("D:\\lakers\\src\\main\\java\\result.txt");
+        File wfile = new File("D:\\Project\\Java\\Competition\\lakersshow\\lakers\\src\\main\\java\\result.txt");
         try {
             FileUtils.writeLines(wfile, lines);
             lines.clear();
@@ -164,7 +159,6 @@ public class UnionFind2 {
         }
         long end2 = new Date().getTime();
         System.out.println("写文件耗时" + (end2 - start2));
-
         long end = new Date().getTime();
         System.out.println("总耗时"+(end - start));
     }
